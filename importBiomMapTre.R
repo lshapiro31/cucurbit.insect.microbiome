@@ -34,6 +34,7 @@ rank_names(insect)
 insect2 <- insect
 
 ## Prune the sparse taxa that show up only 2, 1 or zero times
+
 #insect2 <- prune_taxa(taxa_sums(insect2) > 0, insect2)
 #insect2 <- prune_taxa(taxa_sums(insect2) > 1, insect2)
 insect2 <- prune_taxa(taxa_sums(insect2) > 2, insect2)
@@ -85,3 +86,6 @@ insectR = rarefy_even_depth(insect2, sample.size = 1000)
 sample_sums(insectR)
 
 ### phyloseq object insectR is now ready for use!
+
+insect # phyloseq object with no filtering
+insectR #phyloseq object where wolbachia + chloroplasts have been removed, normalized to 1000 reads per sample
