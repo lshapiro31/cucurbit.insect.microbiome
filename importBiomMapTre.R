@@ -60,22 +60,6 @@ insect2 <- insect3
 ntaxa(insect2)
 ntaxa(insect3)
 
-######################
-### Summarize taxa ###
-######################
-
-source("../taxa_summary.R", local = TRUE)
-mdt = fast_melt(insect2)
-
-prevdt = mdt[, list(Prevalence = sum(count > 0), 
-                    TotalCounts = sum(count)),
-             by = TaxaID]
-# Sort by total counts in ascending order 
-prevdt <- prevdt[order(-prevdt$TotalCounts),]
-prevdt
-
-write.table(prevdt, "otus.txt", sep="\t")
-
 ###################
 ### Rarefy data ###
 ###################
@@ -87,5 +71,29 @@ sample_sums(insectR)
 
 ### phyloseq object insectR is now ready for use!
 
-insect # phyloseq object with no filtering
+insect2 # phyloseq object with no filtering
 insectR #phyloseq object where wolbachia + chloroplasts have been removed, normalized to 1000 reads per sample
+
+######################
+### Summarize taxa ###
+######################
+
+## insect2 is UNRARIFIED data
+
+## insectR is RAREFIED data use the rarefied data 
+## for computing ecological indices and comparing richness, 
+## alpha diversity, and things along those lines.
+
+source("../taxa_summary.R", local = TRUE)
+mdt = fast_melt(insectR)
+
+prevdt = mdt[, list(Prevalence = sum(count > 0), 
+                    TotalCounts = sum(count)),
+             by = TaxaID]
+# Sort by total counts in ascending order 
+prevdt <- prevdt[order(-prevdt$TotalCounts),]
+prevdt
+
+write.table(prevdt, "rarified.otus.txt", sep="\t")
+
+
