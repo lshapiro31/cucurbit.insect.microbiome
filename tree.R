@@ -9,8 +9,13 @@ insect_b = prune_taxa(TopNOTUs, insect_b)
 
 insect_b <- transform_sample_counts(insect_b, function(x) x / sum(x))
 
+#Select custom colors
+#display.brewer.all() 
+#colors_vec <- brewer.pal(2, name = 'Greens')
+#print(colors_vec)
+
 tree_colors <- c(
-  "#CBD588", "#5F7FC7", "orange"
+  "#A1D99B", "#31A354", "orange2"
 )
   
 bee.beetle.tree <- plot_tree(insect_b, 
@@ -24,15 +29,17 @@ bee.beetle.tree <- plot_tree(insect_b,
                              justify = "right",  ## This option is what is making the labels disappear
                              color="sample_Species",
                              base.spacing=0.03,
-                             scale_fill_manual(tree_colors)
-                             #scale_colour_hue("#e5f5f9", "#99d8c9", "#2ca25f"),
-                             title="Distribution of 30 most abundant OTUs in\nAcalymma and Peponapis") +
+                             #scale_fill_manual(tree_colors)
+                             #scale_colour_hue(values=tree_colors),
+                             title="Comparison of the 30 most abundant OTUs in\nAcalymma and Peponapis") +
 scale_size_continuous(range = c(1, 5))
+
 bee.beetle.tree + 
-  theme(plot.title = element_text(lineheight=.8, face="bold",hjust=0.5, size=14),
+  scale_color_manual(values=c(tree_colors)) +
+  theme(plot.title = element_text(lineheight=.8, face="bold",hjust=0.5, size=16),
         legend.title=element_blank())
 
-ggsave("tree.comparison.pdf", height=10, width=10)
+ggsave("tree.comparison.pdf", height=12, width=10)
 
 dev.off()
 
@@ -40,6 +47,6 @@ dev.off()
 
 plot_tree(insect_b, label.tips="taxa_names")
 
-ggsave("tree.comparison.otus-labels.pdf", height=10, width=10)
+ggsave("tree.comparison.otus-labels.pdf", height=12, width=10)
 
 dev.off()

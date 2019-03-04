@@ -55,7 +55,7 @@ insect_b_tr = transform_sample_counts(insect_b, function(x) 100 * x/sum(x))
 
 title = "PCoA of Bray-Curtis distance\nPeponapis pruinosa"
 insectb_ord = ordinate(insect_b, "PCoA", "bray")
-p <- plot_ordination(insect_b, insectb_ord, shape = "sample_Species", color = "State2")
+p <- plot_ordination(insect_b, insectb_ord, color = "State2")
 p + geom_point(size = 6, alpha = 0.8) + ggtitle(title) +
   scale_color_manual(values = c("orange4", "orange")) +
 #  scale_color_manual(values=c("black", "black")) +

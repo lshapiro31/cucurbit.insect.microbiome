@@ -5,8 +5,8 @@
 # Select data for analysis
 # Start with Peponapis
 insect_b <- insect2
-insect_b <- subset_samples(insect_b, State2!="Guanajuato")
 insect_b <- subset_samples(insect_b, Genus=="Peponapis")
+insect_b <- subset_samples(insect_b, State2!="Guanajuato")
 insect_b <- prune_samples(sample_sums(insect_b) > 1, insect_b) ## Restrict to samples that have at least 100 reads
 
 TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:50])
