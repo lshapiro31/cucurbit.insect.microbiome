@@ -1,20 +1,73 @@
-####### Simple ordination of everything
+#################################
+### Acalymma - MA time course ###
+#################################
 
-## Configuration 1
-title = "PCoA of Bray-Curtis distance, everything"
-insectR_ord = ordinate(insectR, "PCoA", "bray")
-p = plot_ordination(insectR, insectR_ord, shape = "sample_Species", color = "State2")
-p = p + geom_point(size = 6, alpha = 0.7) + ggtitle(title)
-p
-p + facet_wrap(~sample_Species)
+#insect_b <- insectR
+insect_b <- insect2
+insect_b <- subset_samples(insect_b, Genus=="Acalymma")
+insect_b <- subset_samples(insect_b, Time_Course=="Yes")
+insect_b <- prune_taxa(taxa_sums(insect_b) > 0, insect_b)
 
-## Configuration 1
-title = "PCoA of Bray-Curtis distance, everything"
-insectR_ord = ordinate(insectR, "PCoA", "bray")
-p = plot_ordination(insectR, insectR_ord, color = "sample_Species", shape = "Region")
-p = p + geom_point(size = 6, alpha = 0.7) + ggtitle(title)
-p
-p + facet_wrap(~State2)
+display.brewer.all() 
+colors_vec <- brewer.pal(3, name = 'Paired')
+print(colors_vec)
+
+TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:100])
+insect_b = prune_taxa(TopNOTUs, insect_b)
+
+###  Change order of samples
+# https://github.com/joey711/phyloseq/issues/291
+sample_data(insect_b)$State2
+sample_data(insect_b)$State2 <- factor(sample_data(insect_b)$State2, levels = c("Massachusetts-early", "Massachusetts-mid", "Massachusetts-late"))
+
+# Transform to percentages of total available.
+insect_b_tr = transform_sample_counts(insect_b, function(x) 100 * x/sum(x))
+
+title = "PCoA of Bray-Curtis distance\nof Acalymma beta-diversity over one growing\nseason in Massachusetts"
+insectb_ord = ordinate(insect_b_tr, "PCoA", "bray")
+p <- plot_ordination(insect_b_tr, insectb_ord, shape = "sample_Species", color = "State2")
+p + geom_point(size = 6, alpha = 0.8) + ggtitle(title) +
+  scale_color_manual(values=colors_vec) +
+  scale_fill_manual(values =c("black", "black", "black")) +
+  theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
+        axis.title.x = element_blank(),
+        axis.text.x  = element_text(face="bold", angle=90, color = "black", hjust=0.5, size=10),
+        axis.title.y = element_text(face="bold", color = "black", size=12),
+        axis.text.y  = element_text(face="bold", color = "black", vjust=0.5, size=10),
+        legend.title=element_blank())
+
+ggsave("Acalymma.timeCourse.PcOA.pdf", height=5, width=7)
+
+
+#################
+### Peponapis ###
+#################
+
+insect_b <- insectR
+insect_b <- subset_samples(insect_b, Genus=="Peponapis")
+insect_b <- subset_samples(insect_b, State2!="Guanajuato")
+
+TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:100])
+insect_b = prune_taxa(TopNOTUs, insect_b)
+
+# Transform to percentages of total available.
+insect_b_tr = transform_sample_counts(insect_b, function(x) 100 * x/sum(x))
+
+title = "PCoA of Bray-Curtis distance\nPeponapis pruinosa"
+insectb_ord = ordinate(insect_b, "PCoA", "bray")
+p <- plot_ordination(insect_b, insectb_ord, shape = "sample_Species", color = "State2")
+p + geom_point(size = 6, alpha = 0.8) + ggtitle(title) +
+  scale_color_manual(values = c("orange4", "orange")) +
+#  scale_color_manual(values=c("black", "black")) +
+  theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
+        axis.title.x = element_blank(),
+        axis.text.x  = element_text(face="bold", angle=90, color = "black", hjust=0.5, size=10),
+        axis.title.y = element_text(face="bold", color = "black", size=12),
+        axis.text.y  = element_text(face="bold", color = "black", vjust=0.5, size=10),
+        legend.title=element_blank())
+
+ggsave("Peponapis.PcOA.pdf", height=5, width=7)
+
 
 ## Configuration 2
 title = "PCoA of Bray-Curtis distance, everything"

@@ -14,6 +14,8 @@ library(purrr)
 library(magrittr)
 library(stringr)
 library(stringi)
+library(RColorBrewer)
+library(plotly)
 #library(impute)
 
 
@@ -82,9 +84,21 @@ sample_sums(insectR)
 insect2 # phyloseq object with no filtering
 insectR #phyloseq object where wolbachia + chloroplasts have been removed, normalized to 1000 reads per sample
 
+## Some summary statistics
+
+# Number of distinct phyla and families
+tax_table(insect2)[,"Phylum"] %>% unique %>% na.exclude %>% length
+tax_table(insect2)[,"Family"] %>% unique %>% na.exclude %>% length
+
+sum(sample_sums(insect2))
+
 sample_variables(insect2)
 levels(sample_data(insect2)$State2)
 
+## Number of samples per variable
+table(sample_data(insect2)$State)
+table(sample_data(insect2)$Species)
+table(sample_data(insect2)$Genus)
 
 ######################
 ### Summarize taxa ###
