@@ -1,18 +1,65 @@
+#####################################
+### Acalymma - Non-MA time course ###
+#####################################
+
+## Pick some colors!
+display.brewer.all() 
+colors_vec <- brewer.pal(7, name = 'Dark2')
+print(colors_vec)
+
+insect_b <- insect2 %>% 
+  subset_samples(
+      Specialist=="Yes" &
+      Genus=="Acalymma" & 
+      Time_Course=="No"
+  ) 
+
+# Scale reads to even depth 
+source("DenefLab-MicrobeMiseq-7e6bc9a/R/miseqR.R", local = TRUE)
+insect_b_scale <- insect_b %>%
+  scale_reads(round = "round")  
+
+# Unconstrained ordination
+acalymma_pcoa <- ordinate(
+  physeq = insect_b_scale, 
+  method = "PCoA", 
+  distance = "bray"
+)
+
+p <- plot_ordination(insect_b_scale, acalymma_pcoa, color = "State2")
+p + geom_point(size = 6, alpha = 0.9) + 
+  ggtitle("PCoA of Bray-Curtis distance\nof of geographically distinct Acalymma populations") +
+  scale_color_manual(values=colors_vec) +
+#  scale_fill_manual(values =c("black", "black", "black", "black")) +
+  theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
+        axis.title.x = element_blank(),
+        axis.text.x  = element_text(face="bold", angle=90, color = "black", hjust=0.5, size=10),
+        axis.title.y = element_text(face="bold", color = "black", size=12),
+        axis.text.y  = element_text(face="bold", color = "black", vjust=0.5, size=10),
+        legend.title=element_blank())
+
+ggsave("Acalymma.all.PcOA.pdf", height=5, width=7)
+
+
 #################################
 ### Acalymma - MA time course ###
 #################################
-
-#insect_b <- insectR
-insect_b <- insect2
-insect_b <- subset_samples(insect_b, Genus=="Acalymma")
-insect_b <- subset_samples(insect_b, Time_Course=="Yes")
-insect_b <- prune_taxa(taxa_sums(insect_b) > 0, insect_b)
 
 display.brewer.all() 
 colors_vec <- brewer.pal(3, name = 'Paired')
 print(colors_vec)
 
-TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:100])
+#insect_b <- insectR       ## Rarefied to 1000 reads per sample
+insect_b <- insect2 %>%    ## Unrarefied dataset
+  subset_samples(
+      Genus=="Acalymma" &
+      Time_Course=="Yes"                   
+                 ) %>%
+  prune_taxa(taxa_sums(.) > 0, .) %>%
+  transform_sample_counts(., function(x) 100 * x/sum(x))
+
+
+TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:20])
 insect_b = prune_taxa(TopNOTUs, insect_b)
 
 ###  Change order of samples
@@ -20,13 +67,11 @@ insect_b = prune_taxa(TopNOTUs, insect_b)
 sample_data(insect_b)$State2
 sample_data(insect_b)$State2 <- factor(sample_data(insect_b)$State2, levels = c("Massachusetts-early", "Massachusetts-mid", "Massachusetts-late"))
 
-# Transform to percentages of total available.
-insect_b_tr = transform_sample_counts(insect_b, function(x) 100 * x/sum(x))
+insectb_ord = ordinate(insect_b, "PCoA", "bray")
 
-title = "PCoA of Bray-Curtis distance\nof Acalymma beta-diversity over one growing\nseason in Massachusetts"
-insectb_ord = ordinate(insect_b_tr, "PCoA", "bray")
-p <- plot_ordination(insect_b_tr, insectb_ord, shape = "sample_Species", color = "State2")
-p + geom_point(size = 6, alpha = 0.8) + ggtitle(title) +
+p <- plot_ordination(insect_b_tr, insectb_ord, color = "State2")
+p + geom_point(size = 6, alpha = 0.8) + 
+  ggtitle("PCoA of Bray-Curtis distance\nof Acalymma beta-diversity over one growing\nseason in Massachusetts") +
   scale_color_manual(values=colors_vec) +
   scale_fill_manual(values =c("black", "black", "black")) +
   theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
@@ -43,20 +88,23 @@ ggsave("Acalymma.timeCourse.PcOA.pdf", height=5, width=7)
 ### Peponapis ###
 #################
 
-insect_b <- insectR
-insect_b <- subset_samples(insect_b, Genus=="Peponapis")
-insect_b <- subset_samples(insect_b, State2!="Guanajuato")
+insect_b <- insect2 %>%
+  subset_samples(
+      Genus=="Peponapis" &
+      State2!="Guanajuato"
+      ) %>%
+  subset_taxa(Phylum=="p__Proteobacteria")  ## There is clustering for just proteobacteria, but not when all OTUs are included
 
-TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:100])
+TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:20])
 insect_b = prune_taxa(TopNOTUs, insect_b)
 
 # Transform to percentages of total available.
 insect_b_tr = transform_sample_counts(insect_b, function(x) 100 * x/sum(x))
 
-title = "PCoA of Bray-Curtis distance\nPeponapis pruinosa"
 insectb_ord = ordinate(insect_b, "PCoA", "bray")
 p <- plot_ordination(insect_b, insectb_ord, color = "State2")
-p + geom_point(size = 6, alpha = 0.8) + ggtitle(title) +
+p + geom_point(size = 6, alpha = 0.8) + 
+  ggtitle("PCoA of Bray-Curtis distance\nPeponapis pruinosa - Proteobacteria only") +
   scale_color_manual(values = c("orange4", "orange")) +
 #  scale_color_manual(values=c("black", "black")) +
   theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
@@ -66,7 +114,14 @@ p + geom_point(size = 6, alpha = 0.8) + ggtitle(title) +
         axis.text.y  = element_text(face="bold", color = "black", vjust=0.5, size=10),
         legend.title=element_blank())
 
+ggsave("Peponapis.Proteobacteria.PcOA.pdf", height=5, width=7)
 ggsave("Peponapis.PcOA.pdf", height=5, width=7)
+
+###################################################
+
+
+
+
 
 
 ## Configuration 2

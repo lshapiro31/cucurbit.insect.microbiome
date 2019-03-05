@@ -1,49 +1,120 @@
-################ 
-### Barplots ###
-################
+################# 
+### Peponapis ###
+#################
 
-# Select data for analysis
+## Subset top 20 otus in Peponapis
 # Start with Peponapis
-insect_b <- insect2
-insect_b <- subset_samples(insect_b, Genus=="Peponapis")
-insect_b <- subset_samples(insect_b, State2!="Guanajuato")
-insect_b <- prune_samples(sample_sums(insect_b) > 1, insect_b) ## Restrict to samples that have at least 100 reads
+# Proportional barchart
+insect.peponapis <- subset_samples(insect2, Genus=="Peponapis")
+TopNOTUs = names(sort(taxa_sums(insect.peponapis), TRUE)[1:20])
 
-TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:50])
-insect_b = prune_taxa(TopNOTUs, insect_b)
-insect.Peponapis.Family <- tax_glom(insect_b, taxrank="Family")
+insect_b <- insect2 %>%
+  subset_samples(
+      Genus=="Peponapis" & State2!="Guanajuato"
+                 ) %>% 
+  prune_samples(sample_sums(.) > 0, .) %>%
+  prune_taxa(TopNOTUs, .) %>%
+  tax_glom(., taxrank="Family") %>% 
+  transform_sample_counts(., function(x) 100 * x/sum(x))
+  
 
-insect_prop = transform_sample_counts(insect.Peponapis.Family, function(x) 100 * x/sum(x))
-title = "Normalized Counts"
+p <- plot_bar(insect_b, x="State_detail", fill="Family") + 
+  ggtitle("Family breakdown of top 50 OTUS in in Peponapis (unrarefied)") +
+  ylab("Proportion of Reads per Taxonomic Group") +
+  xlab("Individual Bee") +
+  coord_flip()
+p + theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
+      axis.text.x  = element_text(face="bold", angle=90, color = "black", hjust=0.5, size=10),
+      axis.title.y = element_text(face="bold", color = "black", size=12),
+      axis.title.x = element_text(face="bold", color = "black", size=12),
+      axis.text.y  = element_text(face="bold", color = "black", vjust=0.5, size=10),
+      legend.title = element_text(size=12, face="bold", hjust = 0.5),
+      legend.text = element_text(size = 10, face = "bold"))
 
-title="Family breakdown of top 50 OTUS in in Peponapis (unrarefied)"
-p <- plot_bar(insect_prop, x="State_detail", fill="Family", title=title) + coord_flip()
-p + theme(plot.title = element_text(lineheight=.8, face="bold",hjust=0.5))
+ggsave("Peponapis.proportional.barchart.pdf", height = 6, width = 8)
 
-############################# 
-### Proportional Barplots ###
-#############################
+dev.off()
 
 ################################ 
 ## Acalymma - non Time Course ##
 ################################
 
-insect_b <- insect2
-insect_b <- subset_samples(insect_b, Genus=="Acalymma")
-insect_b <- subset_samples(insect_b, Time_Course=="No")
-insect_b <- prune_samples(sample_sums(insect_b) > 1, insect_b) ## Restrict to samples that have at least 100 reads
+## Subset top 20 otus in Acalymma
 
-## Subset top 50 otus
-TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:50])
-insect.50 = prune_taxa(TopNOTUs, insect_b)
-insect.Acalymma.Family <- tax_glom(insect.50, taxrank="Family")
+insect.acalymma <- subset_samples(insect2, Genus=="Acalymma")
+TopNOTUs = names(sort(taxa_sums(insect.acalymma), TRUE)[1:20])
 
-insect_prop = transform_sample_counts(insect.Acalymma.Family, function(x) 100 * x/sum(x))
+insect_b <- insect2 %>% 
+  subset_samples(
+    Genus=="Acalymma" &
+    Time_Course=="No"
+    ) %>% 
+  prune_samples(sample_sums(.) > 0, .) %>%
+  prune_taxa(TopNOTUs, .) %>%
+  tax_glom(., taxrank="Family") %>% 
+  transform_sample_counts(., function(x) 100 * x/sum(x))
 
-title="Normalized counts of top 50 OTUs in Acalymma spp. (unrarefied)"
-p2 <- plot_bar(insect_prop, x="State_detail", fill="Family", title=title) + coord_flip()
-p2 + theme(plot.title = element_text(lineheight=.8, face="bold",hjust=0.5))
+acalymma.all <- plot_bar(insect_b, x="State_detail", fill="Family") + 
+  ggtitle("Family breakdown of top 10 OTUS\nin Acalymma spp. (unrarefied)") +
+  ylab("Proportion of Reads per Taxonomic Group") +
+  xlab("Individual Striped Beetle") +
+  coord_flip()
+acalymma.all + theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
+          axis.text.x  = element_text(face="bold", angle=90, color = "black", hjust=0.5, size=10),
+          axis.title.y = element_text(face="bold", color = "black", size=12),
+          axis.title.x = element_text(face="bold", color = "black", size=12),
+          axis.text.y  = element_text(face="bold", color = "black", vjust=0.5, size=10),
+          legend.title = element_text(size=12, face="bold", hjust = 0.5),
+          legend.text = element_text(size = 10, face = "bold"))
 
+ggsave("Acalymma.proportional.barchart.pdf", height = 8, width = 12)
+dev.off()
+
+
+############################ 
+## Acalymma - Time Course ##
+############################
+
+
+## Subset top 20 otus in Acalymma
+
+insect.acalymma <- subset_samples(insect2, Genus=="Acalymma")
+TopNOTUs = names(sort(taxa_sums(insect.acalymma), TRUE)[1:20])
+
+insect_b <- insect2 %>% 
+  subset_samples(
+    Genus=="Acalymma" &
+      Time_Course=="Yes"
+  ) %>% 
+  prune_samples(sample_sums(.) > 0, .) %>%
+  prune_taxa(TopNOTUs, .) %>%
+  tax_glom(., taxrank="Family") %>% 
+  transform_sample_counts(., function(x) 100 * x/sum(x))
+
+acalymma.timeCourse <- plot_bar(insect_b, x="State_detail", fill="Family") + 
+  ggtitle("Family breakdown of top 10 OTUS\nin Acalymma spp. in Massachussetts (unrarefied)") +
+  ylab("Proportion of Reads per Taxonomic Group") +
+  xlab("Individual Striped Beetle") +
+  coord_flip()
+acalymma.timeCourse + theme(plot.title = element_text(lineheight=.8, face="bold", hjust=0.5, size=16),
+                     axis.text.x  = element_text(face="bold", angle=90, color = "black", hjust=0.5, size=10),
+                     axis.title.y = element_text(face="bold", color = "black", size=12),
+                     axis.title.x = element_text(face="bold", color = "black", size=12),
+                     axis.text.y  = element_text(face="bold", color = "black", vjust=0.5, size=10),
+                     legend.title = element_text(size=12, face="bold", hjust = 0.5),
+                     legend.text = element_text(size = 10, face = "bold"))
+
+ggsave("Acalymma.timeCourse.proportional.barchart.pdf", height = 8, width = 12)
+
+dev.off()
+
+
+
+
+
+
+
+###########################
 ### Merge samples by category of insect species
 #insectRm.Species = merge_samples(insect_b, "sample_Species")
 
@@ -63,14 +134,16 @@ Striped.State <-plot_bar(insectRm, fill = "Class", title = title) + coord_flip()
 Striped.State + 
   theme(plot.title = element_text(lineheight=.8, face="bold",hjust=0.5))
 
-################################ 
+############################ 
 ## Acalymma - Time Course ##
-################################
+############################
 
-insect_b <- insect2
-insect_b <- subset_samples(insect_b, Genus=="Acalymma")
-insect_b <- subset_samples(insect_b, Time_Course=="Yes")
-insect_b <- prune_samples(sample_sums(insect_b) > 1, insect_b) ## Restrict to samples that have at least 100 reads
+insect_b <- insect2 %>%
+  subset_samples(
+      Genus=="Acalymma" &
+      Time_Course=="Yes"
+    )  %>%
+  prune_samples(sample_sums(.) > 0, .)
 
 ## Subset top 100 otus
 TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:50])
@@ -108,9 +181,12 @@ Striped.State +
 ################
 
 # This should be faceted by species 
-insect_b <- insect2
-insect_b <- subset_samples(insect_b, Genus=="Diabrotica")
-insect_b <- subset_samples(insect_b, Time_Course=="No")
+insect_b <- insect2 %>%
+  subset_samples(
+      Genus=="Diabrotica" &
+      Time_Course=="No"
+    ) %>%
+  prune_samples(sample_sums(.) > 0, .)
 
 ## Subset top 100 otus
 TopNOTUs = names(sort(taxa_sums(insect_b), TRUE)[1:50])
