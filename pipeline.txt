@@ -1,7 +1,0 @@
-importBiomMapTre.R   ## Import and filter data
-
-Sample.map.R ## Map the location of samples collected for this study
-
-alphaRichness.R ## Calculate alpha diversity
-
-beta-diversity.R ## Calculate beta diversity
