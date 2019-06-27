@@ -1,0 +1,44 @@
+module load python/2.7.14-fasrc01
+module load uchime/4.2.40-fasrc01
+source activate qiime1
+module load jdk/1.8.0_45-fasrc01
+
+# Reference for uchime http://www.metagenomics.wiki/tools/16s/qiime/install/usearch61
+
+# Check for errors in mapping file
+validate_mapping_file.py -m New_mapping_file.txt -o validate_mapping_file_output
+
+# Join paired end Illumina reads
+join_paired_ends.py -f Undetermined_S0_L001_R1_001.fastq.gz -r Undetermined_S0_L001_R2_001.fastq.gz -b Undetermined_S0_L001_I1_001.fastq.gz -o joined/
+
+# Demultiplexes the fastq files
+split_libraries_fastq.py -m New_mapping_file.txt -i joined/fastqjoin.join.fastq -b joined/fastqjoin.join_barcodes.fastq --barcode_type 12 -o demultiplexed/
+
+## Remove chimeras; see  http://www.metagenomics.wiki/tools/16s/qiime/install/usearch61 and http://qiime.org/tutorials/chimera_checking.html?highlight=usearch
+# Must split the input file in half, otherwise not enough memory
+
+identify_chimeric_seqs.py -i demultiplexed/seqs_first_6309200.fna -m usearch61 -o usearch_checked_chimeras_top/ --suppress_usearch61_ref
+identify_chimeric_seqs.py -i demultiplexed/seqs_first_6309200.fna -m usearch61 -o usearch_checked_chimeras_bottom/ --suppress_usearch61_ref
+
+# Concatenate the two output chimeras.txt files
+cat chimeras_top.txt chimeras_bottom.txt > chimeras.txt
+
+# Filter the chimeric sequences out
+filter_fasta.py -f demultiplexed/seqs.fna -o demultiplexed/seqs_chimeras_filtered.fna -s usearch_checked_chimeras_bottom/chimeras.txt -n
+
+############################################
+## OTU picking and otu table construction ##
+############################################
+
+## Pick OTUs against reference database at default 97%
+pick_de_novo_otus.py -i demultiplexed/seqs_chimeras_filtered.fna -o otus_de_novo_uclust/
+
+# Assign taxonomy against the greengenes database
+assign_taxonomy.py -i otus_de_novo_uclust/seqs_rep_set.fasta
+
+# Make the biom file
+make_otu_table.py -i otus_de_novo_uclust/uclust_picked_otus/seqs_otus.txt -t uclust_assigned_taxonomy/seqs_rep_set_tax_assignments.txt -o otus_de_novo_uclust/otu_table_chimeras.biom -m New_mapping_file.txt
+make_otu_table.py -i otus_de_novo_uclust/uclust_picked_otus/seqs_otus.txt -t uclust_assigned_taxonomy/seqs_rep_set_tax_assignments.txt -o otus_de_novo_uclust/otu_table_noChimeras.biom -m New_mapping_file.txt -e otus_de_novo_uclust/chimeras_bottom.txt
+
+# Print install parameters
+print_qiime_config.py
